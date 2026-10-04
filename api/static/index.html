@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Review sentiment demo</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #eef1f6;
+    color: #1f2933;
+  }
+  .card {
+    max-width: 640px;
+    margin: 48px auto;
+    background: #fff;
+    border-radius: 14px;
+    padding: 32px 36px;
+    box-shadow: 0 8px 30px rgba(31, 41, 51, 0.08);
+  }
+  h1 { margin: 0 0 6px; font-size: 26px; }
+  .sub { margin: 0 0 24px; color: #61707d; font-size: 15px; }
+  textarea {
+    width: 100%;
+    height: 160px;
+    padding: 12px 14px;
+    font: inherit;
+    font-size: 15px;
+    border: 1.5px solid #cbd2d9;
+    border-radius: 10px;
+    resize: vertical;
+  }
+  textarea:focus { outline: none; border-color: #3b6ea5; }
+  .row { display: flex; gap: 10px; align-items: center; margin-top: 14px; flex-wrap: wrap; }
+  button {
+    font: inherit;
+    font-size: 15px;
+    padding: 10px 22px;
+    border-radius: 9px;
+    border: 1.5px solid #3b6ea5;
+    background: #3b6ea5;
+    color: #fff;
+    cursor: pointer;
+  }
+  button:hover { background: #2f5a88; }
+  button.ghost { background: #fff; color: #3b6ea5; }
+  button.ghost:hover { background: #f0f5fb; }
+  .examples { margin-left: auto; font-size: 14px; color: #61707d; }
+  .examples button { padding: 6px 12px; font-size: 13px; }
+
+  #result { display: none; margin-top: 28px; padding-top: 22px; border-top: 1px solid #e4e8ed; }
+  .badge {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .badge.positive { background: #e3f6ea; color: #1b7f4b; }
+  .badge.negative { background: #fde8e8; color: #b42323; }
+  .label { margin: 18px 0 6px; font-size: 13px; color: #61707d; text-transform: uppercase; letter-spacing: .04em; }
+  .bar { height: 10px; background: #e4e8ed; border-radius: 999px; overflow: hidden; }
+  .bar div { height: 100%; width: 0; border-radius: 999px; transition: width .4s; }
+  .positive .bar div, .bar div.positive { background: #2fa866; }
+  .bar div.negative { background: #d64545; }
+  .pct { font-size: 14px; color: #61707d; margin-top: 6px; }
+  .groups { display: flex; gap: 8px; }
+  .groups span {
+    flex: 1;
+    text-align: center;
+    padding: 8px 0;
+    border-radius: 8px;
+    background: #f3f5f8;
+    color: #9aa5b1;
+    font-size: 14px;
+  }
+  .groups span.on { background: #3b6ea5; color: #fff; font-weight: 600; }
+  .foot { margin-top: 26px; font-size: 12px; color: #9aa5b1; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Review sentiment</h1>
+  <p class="sub">Paste a movie review. The model says whether it is positive or negative and guesses the star rating group.</p>
+
+  <textarea id="text" placeholder="Write or paste a review here..."></textarea>
+
+  <div class="row">
+    <button id="btn">Classify</button>
+    <button id="clear" class="ghost">Clear</button>
+    <span class="examples">
+      Try an example:
+      <button class="ghost" data-ex="pos">positive</button>
+      <button class="ghost" data-ex="neg">negative</button>
+    </span>
+  </div>
+
+  <div id="result">
+    <span id="label" class="badge"></span>
+
+    <p class="label">Model confidence</p>
+    <div class="bar"><div id="bar"></div></div>
+    <p class="pct" id="pct"></p>
+
+    <p class="label">Predicted rating group</p>
+    <div class="groups" id="groups">
+      <span>1-2</span><span>3-4</span><span>7-8</span><span>9-10</span>
+    </div>
+  </div>
+
+  <p class="foot">Logistic regression on TF-IDF features, trained on the IMDB review dataset.</p>
+</div>
+
+<script>
+const examples = {
+  pos: "One of the best films I have seen this year. The story is touching, the acting is superb and the ending stays with you long after the credits.",
+  neg: "A complete waste of two hours. The plot makes no sense, the dialogue is painful and even the special effects look cheap."
+};
+const text = document.getElementById("text");
+const result = document.getElementById("result");
+
+document.querySelectorAll("[data-ex]").forEach(b => {
+  b.onclick = () => { text.value = examples[b.dataset.ex]; };
+});
+document.getElementById("clear").onclick = () => {
+  text.value = "";
+  result.style.display = "none";
+};
+
+document.getElementById("btn").onclick = async () => {
+  if (!text.value.trim()) { alert("Please enter a review first."); return; }
+  let d;
+  try {
+    const r = await fetch("/predict", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({text: text.value})
+    });
+    d = await r.json();
+  } catch (e) {
+    alert("Cannot reach the API. Open the page at http://localhost:8000/ while the server is running.");
+    return;
+  }
+
+  const label = document.getElementById("label");
+  label.textContent = d.label;
+  label.className = "badge " + d.label;
+
+  const bar = document.getElementById("bar");
+  bar.className = d.label;
+  bar.style.width = (d.probability * 100) + "%";
+  document.getElementById("pct").textContent = (d.probability * 100).toFixed(1) + " % sure it is " + d.label;
+
+  document.querySelectorAll("#groups span").forEach(s => {
+    s.className = s.textContent === d.rating_group ? "on" : "";
+  });
+  result.style.display = "block";
+};
+</script>
+</body>
+</html>

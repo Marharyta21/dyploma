@@ -1,0 +1,24 @@
+.venv/
+.idea/
+.DS_Store
+.pytest_cache/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+data/raw/
+data/processed/
+models/
+*.tar.gz
+
+# thesis guidelines are a separate git repo
+PRO-D-THESIS-final/
+*.egg-info/
+logs/
+
+# Claude helper files, not part of the deliverable
+CLAUDE.md
+.claude/
+AGENTS.md
+.codex/
+thesis/

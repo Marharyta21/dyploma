@@ -1,0 +1,21 @@
+filename,description
+class_balance.png,number of positive and negative reviews in train and test
+length_hist.png,"histogram of review length in words, cut at 1000"
+rating_hist.png,distribution of the 1-10 star ratings
+top_words_pos.png,"20 most frequent words in positive train reviews, stop words removed"
+top_words_neg.png,"20 most frequent words in negative train reviews, stop words removed"
+cm_nb_label4.png,"confusion matrix of nb on the test set, 4 rating groups"
+cm_lr_label4.png,"confusion matrix of lr on the test set, 4 rating groups"
+cm_svm_label4.png,"confusion matrix of svm on the test set, 4 rating groups"
+cm_bert_5000_label4.png,"confusion matrix of bert_5000 on the test set, 4 rating groups"
+cm_bert_20000_label4.png,"confusion matrix of bert_20000 on the test set, 4 rating groups"
+bert_curve_label4.png,"train and validation loss of DistilBERT per epoch, 4 rating groups"
+cm_nb.png,"confusion matrix of nb on the test set, binary sentiment"
+cm_lr.png,"confusion matrix of lr on the test set, binary sentiment"
+cm_svm.png,"confusion matrix of svm on the test set, binary sentiment"
+cm_bert_5000.png,"confusion matrix of bert_5000 on the test set, binary sentiment"
+cm_bert_20000.png,"confusion matrix of bert_20000 on the test set, binary sentiment"
+cm_bert_20000_len512.png,"confusion matrix of bert_20000_len512 on the test set, binary sentiment"
+bert_curve.png,"train and validation loss of DistilBERT per epoch, binary sentiment"
+roc_all.png,ROC curves of all models on the test set
+architecture.png,"layers of the system: data, training, model store, service, presentation, client"

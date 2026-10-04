@@ -1,0 +1,16 @@
+pandas
+numpy
+scikit-learn
+matplotlib
+seaborn
+nltk
+torch
+transformers
+datasets
+accelerate
+fastapi
+uvicorn
+joblib
+jupyter
+pytest
+httpx
