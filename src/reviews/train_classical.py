@@ -16,9 +16,10 @@ val = pd.read_csv("data/processed/val.csv")
 X_train, y_train = vec.transform(train.text), train[target]
 X_val, y_val = vec.transform(val.text), val[target]
 
+# the lr grid goes up to 100 because with the old grid accuracy was still rising at C=10
 grids = {
     "nb": (MultinomialNB, "alpha", [0.01, 0.1, 0.5, 1.0, 2.0], {}),
-    "lr": (LogisticRegression, "C", [0.1, 0.5, 1.0, 5.0, 10.0], {"max_iter": 1000, "random_state": 42}),
+    "lr": (LogisticRegression, "C", [0.1, 0.5, 1.0, 5.0, 10.0, 20.0, 50.0, 100.0], {"max_iter": 1000, "random_state": 42}),
     "svm": (LinearSVC, "C", [0.01, 0.05, 0.1, 0.5, 1.0], {"random_state": 42}),
 }
 

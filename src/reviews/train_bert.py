@@ -1,4 +1,5 @@
 import sys
+import copy
 import time
 import torch
 import pandas as pd
@@ -47,7 +48,8 @@ def predict(df):
     return torch.cat(probs).numpy(), total / len(df)
 
 
-train_time, curve = 0, []
+# validation loss rises after epoch 1-2, so the weights of the epoch with the lowest validation loss are kept
+train_time, curve, best = 0, [], None
 for epoch in range(4):
     t = time.time()
     model.train()
@@ -65,12 +67,16 @@ for epoch in range(4):
     prob, val_loss = predict(val)
     val_acc = (prob.argmax(axis=1) == val[target]).mean()
     curve.append((epoch + 1, total / (step + 1), val_loss, val_acc))
+    if best is None or val_loss < best[1]:
+        best = (epoch + 1, val_loss, copy.deepcopy(model.state_dict()))
     print("epoch", epoch + 1, "train loss", round(curve[-1][1], 4), "val loss", round(val_loss, 4),
           "val acc", round(val_acc, 4), flush=True)
 train_time = round(train_time, 2)
-print("train time", train_time, flush=True)
+print("train time", train_time, "best epoch", best[0], flush=True)
+model.load_state_dict(best[2])
 
 curve = pd.DataFrame(curve, columns=["epoch", "train_loss", "val_loss", "val_acc"]).round(4)
+curve["kept"] = curve.epoch == best[0]
 curve.to_csv(f"tables/bert_curve_{n}{suffix}.csv", index=False)
 model.save_pretrained(f"models/distilbert_{n}{suffix}")
 tok.save_pretrained(f"models/distilbert_{n}{suffix}")

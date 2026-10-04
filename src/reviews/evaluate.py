@@ -30,6 +30,10 @@ for r in runs:
     if os.path.exists(f"models/bert_test_pred_{r}{suffix}.csv"):
         p = pd.read_csv(f"models/bert_test_pred_{r}{suffix}.csv")
         scores[f"bert_{r}"] = p.prob.values if binary else p.filter(like="prob_").values
+for arch in ["cnn", "lstm"]:
+    if os.path.exists(f"models/{arch}_test_pred{suffix}.csv"):
+        p = pd.read_csv(f"models/{arch}_test_pred{suffix}.csv")
+        scores[arch] = p.prob.values if binary else p.filter(like="prob_").values
 
 rows = []
 plt.figure()
@@ -77,6 +81,17 @@ plt.legend()
 plt.savefig(f"figures/bert_curve{suffix}.png")
 plt.close()
 
+plt.figure()
+for arch in ["cnn", "lstm"]:
+    if os.path.exists(f"tables/{arch}_curve{suffix}.csv"):
+        curve = pd.read_csv(f"tables/{arch}_curve{suffix}.csv")
+        plt.plot(curve.epoch, curve.train_loss, "o-", label=f"train loss, {arch}")
+        plt.plot(curve.epoch, curve.val_loss, "o--", label=f"val loss, {arch}")
+plt.gca().set(xlabel="epoch", ylabel="mean cross-entropy loss", title="CNN and BiLSTM loss per epoch")
+plt.legend()
+plt.savefig(f"figures/nn_curve{suffix}.png")
+plt.close()
+
 cols = ["model", "accuracy", "precision", "recall", "f1", "roc_auc", "train_time_s"]
 results = pd.DataFrame(rows, columns=cols).round(4)
 results.to_csv(f"tables/results{suffix}.csv", index=False)
@@ -95,6 +110,7 @@ top.to_csv(f"tables/lr_top_words{suffix}.csv", index=False)
 task = "binary sentiment" if binary else "4 rating groups"
 new = [(f"cm_{n}{suffix}.png", f"confusion matrix of {n} on the test set, {task}") for n in scores]
 new += [(f"bert_curve{suffix}.png", f"train and validation loss of DistilBERT per epoch, {task}")]
+new += [(f"nn_curve{suffix}.png", f"train and validation loss of CNN and BiLSTM per epoch, {task}")]
 new += [("roc_all.png", "ROC curves of all models on the test set")] if binary else []
 new = pd.DataFrame(new, columns=["filename", "description"])
 index = pd.read_csv("tables/figure_index.csv")
