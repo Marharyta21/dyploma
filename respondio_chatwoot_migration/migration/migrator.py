@@ -116,11 +116,11 @@ class Migrator:
             self.verify_archive_inbox()
         self.stats.contacts_seen += 1
         contact = plan.contact
+        if self.dry_run:
+            self._dry_run_plan(plan)
+            return
         try:
             chatwoot_contact_id = self.ensure_contact(contact)
-            if chatwoot_contact_id is None:  # dry run
-                self._dry_run_plan(plan)
-                return
             source_id = self.ensure_contact_inbox(contact, chatwoot_contact_id)
         except (ChatwootHTTPError, SafetyError, WriteBlocked) as exc:
             self.stats.contacts_failed += 1
